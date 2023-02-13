@@ -1,0 +1,67 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title%} {%endblock title%}</title>
+    <link rel="stylesheet" href="{% static 'reset.css' %}" />
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    {% block head %}{%endblock%}
+</head>
+<body>
+    <nav>
+        <figure>
+            <img src="https://media.istockphoto.com/id/1345408289/fr/photo/maillage-3d-dune-dent-isol%C3%A9e-sur-fond-noir.jpg?b=1&s=612x612&w=0&k=20&c=Q7CQJbp24y_JuJDryqN5_BY_0tLzp49SSFDlwf_7Y38=" alt="logo de notre site">
+        </figure> 
+        <ul>
+            <li><a href="{% url 'home' %}">Homepage</a></li>
+            <li><a href="{% url 'book_appointment' %}">Book an appointment</a></li>
+
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'logout' %}">Logout</a></li>
+            {% else %}
+                <li><a href="{% url 'signup' %}">Sign up</a></li>
+                <li><a href="{% url 'login' %}">Login</a></li>
+            {% endif %}
+
+            {% comment %} <li><a href="{% url 'appointment' %}">Take an appointment</a></li>
+            <li><a href="{% url 'past_reservations' %}">Past reservations</a></li>
+            <li><a href="{% url 'login' %}">Sign in</a></li>
+            <li><a href="{% url 'signup' %}">Sign up</a></li>
+            <li><a href="{% url 'logout' %}">Log out</a></li>
+            {% if user.is_authenticated %}
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+          {% else %}
+            <li><a href="{% url 'login' %}">Login</a></li>
+          {% endif %} {% endcomment %}
+        </ul>
+    </nav>
+    <!---->
+    {% block content %} {% endblock content %}
+    {%  if user.is_authenticated %}
+            <p>Vous êtes connecté en tant que {{ request.user }}. <a href="{% url 'logout' %}">Se déconnecter</a></p>
+        {% endif %}
+    <!---->
+    {% comment %} <div class="container"> {% endcomment %}
+        <footer class="py-3 my-4">
+        {% comment %} <footer> {% endcomment %}
+            <p class="float-end"><a href="#" class="nav-link px-2 link-dark" target="_self">Back to top</a></p>
+            {% comment %} <ul class="nav justify-content-center border-bottom pb-3 mb-3"> {% endcomment %}
+            {% comment %} <ul>
+                <li><a href="{% url 'homepagehomepage' %}" class="nav-link px-2 link-dark" target="_self">Homepage</a></li>
+                <li><a href="{% url 'api_app:api_app' %}" class="nav-link px-2 link-dark" target="_self">Services</a></li> 
+            </ul>  {% endcomment %}
+            <ul>
+                <li><a href="https://twitter.com" class="fa fa-twitter"></a></li>
+                <li><a href="https://www.linkedin.com" class="fa fa-linkedin"></a></li>
+            </ul>
+            <p> &copy; All rights reserved, 2023</p>
+        </footer>
+    {% comment %} </div> {% endcomment %}
+    </body>
+</html>    

@@ -1,0 +1,18 @@
+{% extends 'app/base.html' %}
+
+{% block title %}
+    <title> Take an appointment</title>
+{% endblock %}
+
+{% block content %}
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Take Appointment">
+</form>
+
+
+
+{% endblock content %}
+

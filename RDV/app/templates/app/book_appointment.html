@@ -1,0 +1,17 @@
+{% extends 'app/base.html' %}
+
+{% block content %}
+  <div class="container">
+    <h2>Book Appointment</h2>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary">Book</button>
+    </form>
+  </div>
+{% endblock %}
