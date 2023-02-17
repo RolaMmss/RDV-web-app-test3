@@ -1,0 +1,40 @@
+{% extends 'app/base.html' %}
+
+{% block content %}
+<h2>History of sessions of {{ request.user.name }} {{ request.user.last_name }}</h2>
+
+{% comment %} <ul>
+    {% for session in AppointmentSession %}
+        <li>{{ session.date }}: {{ session.note}}
+    {% endfor %}
+</ul> {% endcomment %}
+
+<table>
+    <tr>
+        <td>Date</td>
+        <td>Time</td>
+        <td>User</td>
+        {% if request.user.is_staff %}
+            <td>Note</td>
+        {% endif %}
+    </tr>
+    {% for appointment in appointment_sessions %}
+            <tr>
+                <td>{{ appointment.date }}</td>
+                <td>{{ appointment.start_time }}</td>
+                <td>{{ appointment.user }}</td>
+                {% if request.user.is_staff %}
+                    <td>
+                        <form method="post" action="{% url 'note' appointment.id %}">
+                            {% csrf_token %}
+                            <input type="text" name="note" value="{{ appointment.note }}" placeholder="Enter a note...">
+                            <button type="submit">Save</button>
+                        </form>
+                    </td>
+                {% endif %}           
+             </tr>
+    {% endfor %}
+</table>
+
+
+{% endblock content %}

@@ -16,18 +16,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 # from app import views
-from app.views import homepage, login_page, signup_page, logout_user, book_appointment#, appointment_calendar, make_appointment, appointment_confirmation 
+from app.views import * #homepage, login_page, signup_page, logout_user, book_appointment, appointment_session_view #RendezVousListView#, appointment_calendar, make_appointment, appointment_confirmation 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('homepage/', homepage, name='home'),
-    path('', login_page, name='login'),
+    path('', homepage, name='home'),
+    path('login/', login_page, name='login'),
     path('signup/', signup_page, name='signup'),  
     path('logout/',logout_user, name='logout'),
-    # path('calendar/', appointment_calendar, name='calendar'),
-    # path('make/', make_appointment, name='make'),
-    # path('confirmation/<int:appointment_id>/', appointment_confirmation, name='confirmation'),
-    path('book/', book_appointment, name='book'),
+    path('book/', book_appointment, name='book_appointment'),
+    path('list/', appointment_session_view, name='appointment_list'),
+    path('note/<int:appointment_id>/', note, name='note'),
+
 ]   
 
 

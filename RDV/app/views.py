@@ -1,26 +1,49 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from . import forms
 from django.conf import settings
-from django.views.generic import View
-from .models import Appointment, Coach
-from .forms import AppointmentForm
+from django.views.generic import View, ListView
+from .models import Appointment, AppointmentSession
+from .forms import AppointmentForm, LoginForm, SignupForm, NoteForm
 from django.contrib import messages
-import datetime
 from django import forms
+from django.contrib.auth.models import User
+from datetime import timedelta, datetime
+from django.contrib.auth.decorators import login_required
+from django.db import models
+
+
 
 
 # Create your views here.
+
+# @login_required
+
 def homepage(request):
-    # context = {
-    # }
+    """ View function that renders the homepage template.
+    Parameters:
+        request: the HTTP request object.
+
+    Returns:
+        A rendered HTTP response with the homepage template.
+    """   
     return render (request, "app/homepage.html")
 ####################################################""
 def login_page(request):
-    form = forms.LoginForm()
-    message = ''
+    """The function login_page takes a request object and renders the login.html template with a LoginForm instance and a message. If the request method is POST, the form is validated and the user is authenticated using the provided username and password. If the authentication is successful, the user is logged in and redirected to the home page. Otherwise, an error message is displayed.
+        The coach is staff and may sign in with:
+            Username: Dr.Django
+            Password: passworddjango
+    Parameters:
+        request: the HTTP request object sent by the client.
+
+    Returns: 
+        HttpResponse object that represents the rendered response of the login.html template.
+    """
+    form = LoginForm()
+    message= ''
     if request.method == 'POST':
-        form = forms.LoginForm(request.POST)
+        form = LoginForm(request.POST)
         if form.is_valid():
             user = authenticate(
                 username=form.cleaned_data['username'],
@@ -34,32 +57,17 @@ def login_page(request):
                 message = 'Identifiants invalides.'
     return render(request, 'app/login.html', context={'form': form,'message':message})
 ################################################################
-# class LoginPageView(View):
-#     template_name = 'app/login.html'
-#     form_class = forms.LoginForm
-
-#     def get(self, request):
-#         form = self.form_class()
-#         message = ''
-#         return render(request, self.template_name, context={'form': form, 'message': message})
-        
-#     def post(self, request):
-#         form = self.form_class(request.POST)
-#         if form.is_valid():
-#             user = authenticate(
-#                 username=form.cleaned_data['username'],
-#                 password=form.cleaned_data['password'],
-#             )
-#             if user is not None:
-#                 login(request, user)
-#                 return redirect('home')
-#         message = 'Identifiants invalides.'
-#         return render(request, self.template_name, context={'form': form, 'message': message})
-# ##############################################
 def signup_page(request):
-    form = forms.SignupForm()
+    """Create a signup page view for the app.
+
+    Args:
+        request (HttpRequest): The HTTP request.
+    
+    Returns:
+        HttpResponse: The HTTP response with the rendered signup page.    """
+    form = SignupForm()
     if request.method == 'POST':
-        form = forms.SignupForm(request.POST)
+        form = SignupForm(request.POST)
         if form.is_valid():
             user = form.save()
             # auto-login user
@@ -68,99 +76,134 @@ def signup_page(request):
     return render(request, 'app/signup.html', context={'form': form})
 # ##############################################
 def logout_user(request):
-    
+    """Log out the currently authenticated user and redirect them to the login page.
+
+    Args:
+        request: The HTTP request object.
+    Returns:
+        A redirect response to the login page.
+    """
     logout(request)
     return redirect('login')
 #################################################
-# def appointment_calendar(request):
-#     appointments = Appointment.objects.all()
-#     return render(request, 'appointments/calendar.html', {'appointments': appointments})
-# ##################################################
-# def appointment_confirmation(request, appointment_id):
-#     appointment = Appointment.objects.get(id=appointment_id)
-#     return render(request, 'appointments/confirmation.html', {'appointment': appointment})
-# #############################################
-# def make_appointment(request):
-#     if request.method == 'POST':
-#         form = AppointmentForm(request.POST)
-#         if form.is_valid():
-#             appointment = form.save(commit=False)
-#             # Valider si le rendez-vous est possible en fonction des disponibilités
-#             # et de la durée minimale entre les rendez-vous
-#             if is_valid_appointment(appointment):
-#                 appointment.save()
-#                 return redirect('appointments:confirmation', appointment.id)
-#     else:
-#         form = AppointmentForm()
-#     return render(request, 'appointments/make_appointment.html', {'form': form})
-# ##########################################""
-# def is_valid_appointment(appointment):
-#     # Vérifier si le rendez-vous est possible en fonction des disponibilités
-#     # et de la durée minimale entre les rendez-vous
-#     return True
-
-#################################################"""
-
 def book_appointment(request):
+    """This function takes a request as an argument and renders the 'book_appointment.html' template with a form to book a new appointment. 
+    Args:
+        request: A HttpRequest object representing the incoming request.
+
+    Returns:
+        A rendered template with a form to book a new appointment. 
+    """
+    form = AppointmentForm()
+    message = ''
     if request.method == 'POST':
-        coach_id = request.POST.get('coach')
-        start_time = request.POST.get('start_time')
-        end_time = request.POST.get('end_time')
-        subject = request.POST.get('subject')
+        form = AppointmentForm(request.POST)
+        if form.is_valid():
+            message = 'Date format : YY/MM/DD'
+            start_time = form.cleaned_data['start_time']
+            date = form.cleaned_data['date']
+            subject = request.POST.get('subject')
+            
+            # Check for existing appointment with the same date and time
+            existing_appointment = Appointment.objects.filter(start_time=start_time, date=date)
+            if existing_appointment.exists():
+                messages.error(request, 'Appointment already exists for this date and time.')
+            else:   
+                # save the appointment
+                appointment = Appointment.objects.create(
+                    start_time=start_time,
+                    subject=subject,
+                    date= date,
+                    user = request.user
+                    )
+                return redirect('home')
+                messages.success(request, 'Appointment has been booked successfully')
+    return render(request, 'app/book_appointment.html', context={'user': User, "form":form})
+###############################################################""
+# class RendezVousListView(ListView):
+#     model = AppointmentSession
+#     template_name = 'appointment_list.html'
 
-        coach = Coach.objects.get(id=coach_id)
-        start_time = datetime.datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
-        end_time = datetime.datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
+#     def get_queryset(self):
+#         client_id = self.kwargs['client_id']
+#         return AppointmentSession.objects.filter(client_id=client_id)  
+# ###############################################################
 
-        # vérifier si le coach est disponible
-        is_coach_available = Appointment.objects.filter(coach=coach, start_time__range=(start_time, end_time)).exists() or \
-                             Appointment.objects.filter(coach=coach, end_time__range=(start_time, end_time)).exists()
-        if is_coach_available:
-            messages.error(request, 'Coach is not available at this time')
-            return redirect('book_appointment')
-
-        # vérifier si il y a au moins 10 minutes entre deux rendez-vous
-        last_appointment = Appointment.objects.filter(coach=coach, end_time__lt=start_time).last()
-        if last_appointment and (start_time - last_appointment.end_time).total_seconds() / 60 < 10:
-            messages.error(request, 'There should be at least 10 minutes gap between two appointments')
-            return redirect('book_appointment')
-
-        # vérifier si le temps de rendez-vous est entre 9h et 12h30 et de 13h30 à 17h
-        if start_time.hour < 9 or start_time.hour >= 17 or \
-           (start_time.hour == 12 and start_time.minute >= 30) or \
-           (start_time.hour == 13 and start_time.minute < 30):
-            messages.error(request, 'Appointment time should be between 9:00 and 12:30 and between 13:30 and 17:00')
-            return redirect('book_appointment')
-
-        # enregistrer le rendez-vous
-        appointment = Appointment.objects.create(
-            coach=coach,
-            start_time=start_time,
-            end_time=end_time,
-            subject=subject
-            )
-        messages.success(request, 'Appointment has been booked successfully')
-        return redirect('book_appointment')
-    coaches = Coach.objects.all()
-    context = {
-        'coaches': coaches
-    }
-    return render(request, 'book_appointment.html', context)
-
-# class BookAppointmentForm(forms.ModelForm):
-#     coach = forms.ModelChoiceField(queryset=Coach.objects.all(), widget=forms.Select(attrs={'class': 'form-control'}))
-#     start_time = forms.DateTimeField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-#     end_time = forms.DateTimeField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-#     subject = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class': 'form-control'}))
+# def appointment_session_view(request):
+#     appointment_sessions = AppointmentSession.objects.all()
+#     context = {'appointment_sessions': appointment_sessions}
+#     return render(request, 'app/appointment_list.html', context)
 
 
-class BookAppointmentForm(forms.ModelForm):
-    class Meta:
-        model = Coach
-        fields = ['coach', 'start_time', 'end_time', 'subject']
-        widgets = {
-            'coach': forms.Select(attrs={'class': 'form-control'}),
-            'start_time': forms.TextInput(attrs={'class': 'form-control'}),
-            'end_time': forms.TextInput(attrs={'class': 'form-control'}),
-            'subject': forms.TextInput(attrs={'class': 'form-control'})
-        }
+def appointment_session_view(request):
+    """Renders a view for appointment session displaying to users or staff based on authentication status.
+
+    Args:
+        request: HTTP request object
+
+    Returns:
+        A rendered view of appointment sessions in the template 'app/appointment_list.html' containing all appointment objects for staff or only the objects for the current user.
+    """
+    if request.user.is_staff:
+        appointment_sessions = Appointment.objects.all().order_by('date','start_time')
+    else:
+        appointment_sessions = Appointment.objects.filter(user=request.user).order_by('date','start_time')
+    context = {'appointment_sessions': appointment_sessions}
+    return render(request, 'app/appointment_list.html', context)
+
+###########################################################
+# def add_note(request, appointment_id):
+#     """The add_note function takes a request and appointment_id as input parameters. It retrieves an appointment object with the provided appointment_id and updates its note field with the note retrieved from the POST data. 
+
+#     Args:
+#         request : HTTP request object containing metadata about the request
+#         appointment_id : ID of the appointment to be updated
+
+#     Returns:
+#         Redirects to the appointment_session_view page if the user is not a staff user, or redirects to the same page with updated appointment data if the note is successfully added. If the request method is not POST, renders a template with the appointment and note data.
+#     """
+#     appointment = get_object_or_404(Appointment, id=appointment_id)
+
+#     # Check if the user is a staff user
+#     if not request.user.is_staff:
+#         return redirect('appointment_session_view')
+
+#     if request.method == 'POST':
+#         # Retrieve the note from the POST data
+#         note = request.POST.get('note')
+
+#         # Update the note field of the appointment object
+#         appointment.note = note
+
+#         # Save the updated appointment object to the database
+#         appointment.save()
+
+#         return redirect('appointment_session_view')
+
+#     # If the request method is not POST, render a template with the appointment and note data
+#     context = {'appointment': appointment}
+#     return render(request, 'app/add_note.html', context)
+#######################################################################
+
+def note(request):
+    """Create a note view 
+
+    Args:
+        request (HttpRequest): The HTTP request.
+    
+    Returns:
+        HttpResponse: The HTTP response with the rendered signup page.    """
+    form = NoteForm()
+    if request.method == 'POST':
+        # Retrieve the note from the POST data
+        form = NoteForm(request.POST)
+        if form.is_valid():
+            note = request.POST.get('note')
+        
+            # Update the note field of the appointment object
+            appointment.note = note
+            # Save the updated appointment object to the database
+            appointment.save()
+            # If the request method is not POST, render a template with the appointment and note data
+            return redirect('appointment_session_view')
+    return render(request, 'app/note.html', context={'appointment': Appointment})

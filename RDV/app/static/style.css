@@ -19,7 +19,7 @@ nav {
 }
 
 nav figure {
-    width: 50px; 
+    width: 80px; 
    
 }
 
@@ -31,21 +31,16 @@ nav ul {
     font-weight: bold;
 }
 
-/* .signup {
-    background-color: #2dcff8;
-    border-radius: 12px;
-    padding: 20px;
-} */
 
 img {
     width: 100%;
     object-fit: cover;
 }
 
-figure {
+/* figure {
     width: 100%;
     object-fit: cover;
-}
+} */
 
 nav ul li a {
     color: #999;
@@ -60,23 +55,38 @@ nav ul li a:hover {
     transition: color 0.3s;
 }
 
-header {
+/*header {
     display: grid;
     grid-template-columns: 2fr 2fr;
     align-items: center;
     gap: 50px;
-    /* justify-content: center; */
+ } */
+ 
+  
+.right-section {
+    /* float: right;  */
+    margin-left: 400px;
 }
 
-header figure {
+/* header figure {
     width: 500px;
-}
+} */
+
+table {
+    border-collapse: collapse;
+    border: 1px solid black;
+  }
+  
+  th, td {
+    border: 1px solid black;
+  }
 
 h1 {
     color: #d01c73;
     font-size: 2em;
     font-family: Helvetica, Arial, sans-serif;
     font-weight: 600;
+    padding: 20px;
 }
 
 h2 {
@@ -84,6 +94,11 @@ h2 {
     font-size: 1.5em;
     font-family: Helvetica, Arial, sans-serif;
     font-weight: 600;
+    padding: 20px;
+}
+
+p {
+    padding: 10px; 
 }
 
 footer {
